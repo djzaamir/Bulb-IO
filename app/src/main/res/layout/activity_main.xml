@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif"
         android:text="Bulb.IO"
-        android:textColor="#FFFFFF"
+        android:textColor="#3C3F41"
         android:textSize="70sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
