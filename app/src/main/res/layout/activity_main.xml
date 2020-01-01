@@ -6,15 +6,17 @@
     android:layout_height="match_parent"
     android:padding="20dp"
     android:background="#B0CA6D"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:id="@+id/main_container"
+    >
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/bulb_io_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif"
         android:text="Bulb.IO"
-        android:textColor="#3C3F41"
+        android:textColor="#fff"
         android:textSize="70sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
