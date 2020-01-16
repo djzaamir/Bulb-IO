@@ -2,11 +2,10 @@ package com.andromeda.djzaamir.bulb_io;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.provider.CalendarContract;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -35,13 +34,21 @@ public class MainActivity extends AppCompatActivity {
     private String MSG_PROCESSING = "Getting Status...";
     private final String STATUS_ON = "Status : ON";
     private final String STATUS_OFF = "Status : OFF";
-    private final String toggle_url = "http://192.168.0.111/toggle";
-    private final String status_url = "http://192.168.0.111/status";
+    private final String base_url = "http://192.168.1.225";
+    private String toggle_url;
+    private String status_url;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //prepare Http routes
+        toggle_url = base_url + "/toggle";
+        status_url = base_url + "/status";
+
+        //Keep the Screen on
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         //get UI references
         layout = findViewById(R.id.main_container);
@@ -63,56 +70,58 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendVolleyRequest(String url) {
+        //Pre-request preparations
         toggle_button.setEnabled(false);
-
         status_text.setText(MSG_PROCESSING);
+
         StringRequest bulb_toggle_request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 if (Integer.valueOf(response) == 0) {
                     status_text.setText(STATUS_ON);
                     title_text.setTextColor(Color.BLACK);
-//                    layout.setBackgroundColor(Color.parseColor("#B0CA6D"));
-
-                    //Background color fadder
-                    ObjectAnimator colorFade = ObjectAnimator.ofObject(layout, "backgroundColor", new ArgbEvaluator(),                      Color.BLACK , Color.parseColor("#B0CA6D") );
-                    colorFade.setDuration(1000);
-                    colorFade.start();
-
-
+                    backgroundCrossFadeAnimation(Color.BLACK, Color.parseColor("#B0CA6D") ,layout , 1000);
                 } else if (Integer.valueOf(response) == 1) {
                     status_text.setText(STATUS_OFF);
                     title_text.setTextColor(Color.WHITE);
-//                    layout.setBackgroundColor(Color.BLACK);
-
-                     ObjectAnimator colorFade = ObjectAnimator.ofObject(layout, "backgroundColor", new ArgbEvaluator(),                      Color.parseColor("#B0CA6D") , Color.BLACK );
-                    colorFade.setDuration(1000);
-                    colorFade.start();
-
+                    backgroundCrossFadeAnimation(Color.parseColor("#B0CA6D"), Color.BLACK, layout, 1000);
                 }
                 toggle_button.setEnabled(true);
             }
         },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        if (error instanceof TimeoutError) {
-                            status_text.setText("Connection Timeout");
-                        } else if (error instanceof NoConnectionError) {
-                            status_text.setText("No Connect");
-                        } else if (error instanceof ServerError) {
-                            status_text.setText("Server Error");
-                        } else if (error instanceof NetworkError) {
-                            status_text.setText("Network Error");
-                        } else if (error instanceof ParseError) {
-                            status_text.setText("Parse Error");
-                        }
-                        toggle_button.setEnabled(true);
-                    }
-                });
+        new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error instanceof TimeoutError) {
+                    status_text.setText("Connection Timeout");
+                } else if (error instanceof NoConnectionError) {
+                    status_text.setText("No Connect");
+                } else if (error instanceof ServerError) {
+                    status_text.setText("Server Error");
+                } else if (error instanceof NetworkError) {
+                    status_text.setText("Network Error");
+                } else if (error instanceof ParseError) {
+                    status_text.setText("Parse Error");
+                }
+                toggle_button.setEnabled(true);
+            }
+        });
 
+         //Turn of Volley caching, Effectively forcing volley to always make new requests
+        bulb_toggle_request.setShouldCache(false);
 
         //Add to volley queue, so it may be processed
         volley_request_queue.add(bulb_toggle_request);
+    }
+
+    private void backgroundCrossFadeAnimation(int from_color, int to_color, ConstraintLayout layout, int duration_ms) {
+        ObjectAnimator animator =  ObjectAnimator.ofObject(layout,
+                                                "backgroundColor",
+                                                            new ArgbEvaluator(),
+                                                            from_color,
+                                                            to_color
+                                                            );
+        animator.setDuration(duration_ms);
+        animator.start();
     }
 }
